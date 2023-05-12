@@ -1,54 +1,51 @@
 import os
-import numpy as np # linear algebra
-import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
+import pandas as pd
 import cv2
+
+input_file_path = input("Girdi doysa yolu:")
+output_file_path = input("Çıktı doysa yolu:")
+
+#"./input" dizinindeki dosyaların listesi elde edilir 
 print(os.listdir("./input"))
 
-# Image path
-image_path = r"/Users/aysenur/Desktop/aysi_goruntu/input/1.jpg"
+img_arr = os.listdir("./input")
 
-# Image directory
-directory = r"/Users/aysenur/Desktop/aysi_goruntu/output/"
+for i in img_arr:
+    if os.path.splitext(i)[1] == ".jpg":
+        print("-------------")
+        print(i)
+        image_path = "/Users/aysenur/Desktop/aysi_goruntu" + os.path.join("/input", i)
+        directory = r"/Users/aysenur/Desktop/aysi_goruntu/output/"
+        
+        ### bu arada resmi işledim
+        img = cv2.imread(image_path, cv2.IMREAD_COLOR)
 
-# Using cv2.imread() method
-# to read the image
-img = cv2.imread(image_path, cv2.IMREAD_COLOR)
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(16, 16))
 
-### bu arada image yi işle
+        img_lab = cv2.cvtColor(img, cv2.COLOR_BGR2Lab)
 
-clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(16, 16))
+        l, a, b = cv2.split(img_lab)
+        img_l = clahe.apply(l)
+        img_clahe = cv2.merge((img_l, a, b))
 
-img_lab = cv2.cvtColor(img, cv2.COLOR_BGR2Lab)
+        img_clahe = cv2.cvtColor(img_clahe, cv2.COLOR_Lab2BGR)
 
-l, a, b = cv2.split(img_lab)
-img_l = clahe.apply(l)
-img_clahe = cv2.merge((img_l, a, b))
+        img = img_clahe
 
-img_clahe = cv2.cvtColor(img_clahe, cv2.COLOR_Lab2BGR)
+        ### KAYDETME
 
-img = img_clahe
+        os.chdir(directory)
 
-###
+        print("Before saving image:")
+        print(os.listdir(directory))
 
-# Change the current directory
-# to specified directory
-os.chdir(directory)
+        # dosya adı
+        filename = i
 
-# List files and directories
-# in 'C:/Users/Rajnish/Desktop/GeeksforGeeks'
-print("Before saving image:")
-print(os.listdir(directory))
+        # görseli kaydetme
+        cv2.imwrite(filename, img)
 
-# Filename
-filename = 'savedImage.jpg'
+        print("After saving image:")
+        print(os.listdir(directory))
 
-# Using cv2.imwrite() method
-# Saving the image
-cv2.imwrite(filename, img)
-
-# List files and directories
-# in 'C:/Users / Rajnish / Desktop / GeeksforGeeks'
-print("After saving image:")
-print(os.listdir(directory))
-
-print('Successfully saved')
+        print("Successfully saved")
