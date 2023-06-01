@@ -1,0 +1,151 @@
+<% var uploaded=locals.uploaded; %>
+    <!doctype html>
+    <html>
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+
+    <body onload="upload_area()" class="bg-gray-200">
+        <style>
+            @media screen and (-webkit-min-device-pixel-ratio: 0) {
+
+                input[type="range"]::-webkit-slider-thumb {
+                    width: 15px;
+                    -webkit-appearance: none;
+                    appearance: none;
+                    height: 15px;
+                    cursor: ew-resize;
+                    background: #FFF;
+                    box-shadow: -405px 0 0 400px #605E5C;
+                    border-radius: 50%;
+
+                }
+            }
+        </style>
+        <div class="mx-auto grid max-w-7xl grid-cols-12 gap-4 p-1 h-screen">
+            <div class="col-span-12 rounded-lg border border-gray-500 bg-gray-200 lg:col-span-8 my-8">
+                <div class="w-full p-2">
+                    <div class="border-b border-gray-500 w-full py-1 px-2 text-gray-500">Fotoğraf</div>
+                </div>
+
+                <div class="<%= uploaded?" hidden":"";%>" id="upload_area">
+                    <div class="text-gray-500 mt-10 px-10">Yüklü fotoğraf yok, fotoğraf yükleyin.</div>
+
+                    <form class="mx-10 my-1 border border-gray-500 p-10 bg-gray-300 rounded-md" ref='uploadForm'
+                        id='uploadForm' action='/upload' method='post' encType="multipart/form-data">
+                        <input type="file" name="sampleFile" onchange="enableUploadButton(event)" />
+                        <input
+                            class="hidden border border-gray-500 text-gray-500 rounded-md px-4 ml-10 py-2 m-2 transition duration-500 ease select-none hover:text-white hover:bg-gray-600 focus:outline-none focus:shadow-outline"
+                            type='submit' value='Yükle' id="uploadButton" disabled />
+                    </form>
+                </div>
+                <div class="<%= uploaded?"":" hidden";%>" id="foto_area">
+                    <img id="img_obj" class="object-cover object-center w-full h-full block" src="/foto">
+                    <div class="flex">
+                        <div class="grow"></div>
+                        <div class="flex-none">
+                            <button onclick="indir()"
+                                class="py-2 m-2 px-4 bg-transparent text-gray-600 font-semibold border border-gray-600 rounded hover:bg-gray-600 hover:text-white hover:border-transparent">
+                                İndir</button>
+                        </div>
+                        <div class="flex-none">
+                            <button onclick="sil()"
+                                class="py-2 m-2 px-4 bg-transparent text-gray-600 font-semibold border border-gray-600 rounded hover:bg-gray-600 hover:text-white hover:border-transparent">
+                                Sil</button>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+            <div class="col-span-12 rounded-lg border border-gray-400 bg-gray-200 lg:col-span-4 my-8">
+                <div class="w-full p-2 <%= uploaded?"":" hidden";%>">
+                    <div class="border-b border-gray-500 w-full py-1 px-2 text-gray-500">Ayarlar</div>
+                    <input class="rounded-lg overflow-hidden appearance-none bg-gray-400 h-3 w-full" type="range"
+                        min="1" max="100" step="1" value="15" />
+                    <p>Contrast Limited Adaptive Histogram Equalization</p>
+                    <p>Auto White Balance</p>
+                    <p>a</p>
+                    <p>a</p>
+                    <p>a</p>
+                    <p>a</p>
+                    <p>a</p>
+                    <p>a</p>
+                    <p>a</p>
+                    <p>a</p>
+                    <p>a</p>
+                    <div class="flex">
+                        <div class="grow"></div>
+                        <div class="flex-none">
+                            <button onclick="uygula()"
+                                class="py-2 m-2 px-4 bg-transparent text-gray-600 font-semibold border border-gray-600 rounded hover:bg-gray-600 hover:text-white hover:border-transparent">
+                                Uygula</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <script>
+            function enableUploadButton(event) {
+                var fileInput = event.target;
+                var uploadButton = document.getElementById("uploadButton");
+
+                if (fileInput.files.length > 0) {
+                    uploadButton.disabled = false;
+                    uploadButton.classList.remove("hidden");
+                } else {
+                    uploadButton.disabled = true;
+                    uploadButton.classList.add("hidden");
+                }
+            }
+
+            function uygula() {
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "/ayar", true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.send(JSON.stringify({
+                    username: "",
+                    password: ""
+                }));
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState == 4 && xhr.status == 200) {
+                        if (xhr.responseText == "ok") {
+                            location.reload()
+                        }
+                    }
+                }
+            }
+            function sil() {
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "/sil", true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.send(JSON.stringify({
+                    username: "",
+                    password: ""
+                }));
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState == 4 && xhr.status == 200) {
+                        if (xhr.responseText == "ok") {
+                            location.reload()
+                        }
+                        else {
+                            alert("Fotoğraf silinemedi.")
+                        }
+                    }
+                }
+            }
+            function indir() {
+                var link = document.createElement('a');
+                link.href = '/foto';
+                link.download = 'foto.jpg';
+                link.click();
+            }
+
+        </script>
+    </body>
+
+    </html>
