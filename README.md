@@ -1,2 +1,2 @@
-# Image-Processing-System-with-Python-GUI
- The purpose of this project is to create an image processing system that allows the user to specify the input and output file paths with the terminal. The system will present a number of image processing options to the user and will change the image according to the selected process and save the result to the specified output file path.
+# Image-Processing-System-with-Python
+This project is an image manipulation application that allows users to customize their photos by choosing the filters they want. With its user-friendly interface and effective image processing algorithms, the project is expected to gain popularity among users and facilitate the photo editing process.
