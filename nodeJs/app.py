@@ -3,9 +3,14 @@ import numpy as np # linear algebra
 import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
 import cv2
 import sys
+import json
 
-def clahe_image(img):
-    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(32, 32))
+
+def clahe_image(img, settings):
+    settings_clipLimit = float(settings[0]["sub_settings"][0]["value"])
+    settings_tileGridSize = int(settings[0]["sub_settings"][1]["value"])
+
+    clahe = cv2.createCLAHE(clipLimit= settings_clipLimit, tileGridSize=(settings_tileGridSize, settings_tileGridSize))
 
     img_lab = cv2.cvtColor(img, cv2.COLOR_BGR2Lab)
 
@@ -17,30 +22,40 @@ def clahe_image(img):
 
     return img_clahe
 
-def awb(img):
+def awb(img, settings):
+    settings_p = float(settings[1]["sub_settings"][0]["value"])
+    settings_saturationThreshold = float(settings[1]["sub_settings"][1]["value"])
+    settings_saturationThreshold2 = float(settings[1]["sub_settings"][2]["value"])
+
     wb = cv2.xphoto.createSimpleWB()
-    wb.setP(0.4)
+    wb.setP(settings_p)
     
     img_wb = wb.balanceWhite(img)
     
     wb2 = cv2.xphoto.createGrayworldWB()
-    wb2.setSaturationThreshold(0.90)
+    wb2.setSaturationThreshold(settings_saturationThreshold)
 
     img_wb2 = wb2.balanceWhite(img_wb)
 
     wb3 = cv2.xphoto.createLearningBasedWB()
-    wb3.setSaturationThreshold(0.99)
+    wb3.setSaturationThreshold(settings_saturationThreshold2)
 
     img_wb3 = wb2.balanceWhite(img_wb2)
 
     return img_wb3
 
-#print('First param:'+sys.argv[1]+'#')
-#print('Second param:'+sys.argv[2]+'#')
+json_str = ''.join(sys.argv[1:])
 
-img = cv2.imread("./photos/foto.jpg", cv2.IMREAD_COLOR) ## diğer dosya türleri için
+json_settings = json.loads(json_str)
 
-img = clahe_image(img)
-img = awb(img)
+print(json_settings[1]["sub_settings"])
 
-cv2.imwrite("./photos/foto_2.jpg", img)
+
+#print('Second param:'+sys.argv[1]+'#')
+
+img = cv2.imread("./photos/foto.jpeg", cv2.IMREAD_COLOR) ## diğer dosya türleri için
+
+img = clahe_image(img, json_settings)
+img = awb(img, json_settings)
+
+cv2.imwrite("./photos/foto_2.jpeg", img)

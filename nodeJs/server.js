@@ -7,23 +7,86 @@ const path = require('path');
 
 app.use(fileUpload());
 app.set('view engine', 'ejs');
+app.use(express.json());
 
-function runPythonScript(scriptPath, args) { //python komutunu çalıştıran fonksiyon
+var settings = [
+    {
+        "name": "clahe_image",
+        "title": "CLAHE",
+        "sub_settings": [
+            {
+                "name": "clipLimit",
+                "title": "Clip Limit",
+                "type": "range",
+                "min": 0,
+                "max": 40,
+                "step": 1,
+                "value": 2.0
+            },
+            {
+                "name": "tileGridSize",
+                "title": "Tile Grid Size",
+                "type": "range",
+                "min": 0,
+                "max": 40,
+                "step": 1,
+                "value": 16
+            }
+        ]
+    },
+    {
+        "name": "awb",
+        "title": "Auto White Balance",
+        "sub_settings": [
+            {
+                "name": "setP",
+                "title": "Set P",
+                "type": "range",
+                "min": 0,
+                "max": 4,
+                "step": 0.1,
+                "value": 0.4
+            },
+            {
+                "name": "SaturationThreshold",
+                "title": "Saturation Threshold",
+                "type": "range",
+                "min": 0,
+                "max": 4,
+                "step": 0.1,
+                "value": 0.9
+            },
+            {
+                "name": "SaturationThreshold2",
+                "title": "Saturation Threshold 2",
+                "type": "range",
+                "min": 0,
+                "max": 4,
+                "step": 0.1,
+                "value": 0.99
+            }
+        ]
+    }
+]
+
+var currentSettings = JSON.parse(JSON.stringify(settings));
+
+function runPythonScript(scriptPath, args) {
     return new Promise((resolve, reject) => {
-        const python = spawn('python3', [scriptPath, ...args]); //terminal kodu çalıştırır
+        const python = spawn('python3', [scriptPath, ...args]);
 
         let output = '';
         let error = '';
 
-        python.stdout.on('data', (data) => { //çıktı gelince
+        python.stdout.on('data', (data) => {
             output += data.toString();
         });
 
-        python.stderr.on('data', (data) => { // hata gelince
+        python.stderr.on('data', (data) => {
             error += data.toString();
         });
 
-        python.on('close', (code) => { // işlem tamamlanınca
+        python.on('close', (code) => {
             if (code === 0) {
                 resolve(output);
             } else {
@@ -33,7 +96,7 @@ function runPythonScript(scriptPath, args) { //python komutunu çalıştıran fo
     });
 }
 
-app.post('/upload/', async function (req, res) { // sunucuya post işlemi ile foto yüklenme
+app.post('/upload/', async function (req, res) {
     let sampleFile, sampleFile2;
     let uploadPath, uploadPath2;
 
@@ -54,13 +117,13 @@ app.post('/upload/', async function (req, res) { // sunucuya post işlemi ile fo
         sampleFile2.mv(uploadPath2, function (err) {
             if (err)
                 return res.status(500).send(err);
-            res.redirect('/'); // yükleme başarılı olunca anasayfaya yeniden yönlendirir 
+            res.redirect('/');
         });
     });
 
 });
 
-app.get("/foto", async function (req, res) { // /foto adresine gelen istekle foto2 yi döndürür
+app.get("/foto", async function (req, res) {
     fs.readdir('./photos', (err, files) => {
         if (err) {
             console.error('Klasör okunurken bir hata oluştu:', err);
@@ -80,8 +143,12 @@ app.get("/foto", async function (req, res) { // /foto adresine gelen istekle fot
     });
 })
 
-app.post("/ayar", async function (req, res) { // python scriptini çalıştırır
-    runPythonScript("app.py", "deneme", "deneme2").then((result) => { //deneme1 ve deneme2 ayarların durumunu göndermek için oluşturduk
+app.post("/ayar", async function (req, res) {
+    //console.log(req.body.newSettings);
+    currentSettings = req.body.newSettings;
+
+    runPythonScript("app.py", JSON.stringify(currentSettings)).then((result) => {
+        console.log(result);
         res.send("ok");
     }).catch((err) => {
         console.log(err);
@@ -89,7 +156,7 @@ app.post("/ayar", async function (req, res) { // python scriptini çalıştırı
     })
 })
 
-app.post("/sil", async function (req, res) { 
+app.post("/sil", async function (req, res) {
     console.log("silme post");
 
     fs.readdir("photos", (err, files) => {
@@ -110,22 +177,23 @@ app.post("/sil", async function (req, res) {
                 }
             });
         });
+        currentSettings = JSON.parse(JSON.stringify(settings));
         res.send("ok");
     });
 
 })
 
-app.get("/", async function (req, res) { // anasayfa isteği
+app.get("/", async function (req, res) {
     fs.readdir('./photos', (err, files) => {
         if (err) {
             console.error('Klasör okunurken bir hata oluştu:', err);
             return;
         }
 
-        if (files.length > 0) { // photos içinde dosya var ise yükleme kısmını aktif ediyor
-            res.render("index", { uploaded: true });
+        if (files.length > 0) {
+            res.render("index", { uploaded: true, settings: currentSettings });
         } else {
-            res.render("index", { uploaded: false });
+            res.render("index", { uploaded: false, settings: settings });
         }
     });
 })

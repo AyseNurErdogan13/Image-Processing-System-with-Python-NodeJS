@@ -1,4 +1,4 @@
-<% var uploaded=locals.uploaded; %>
+<% var uploaded=locals.uploaded; var settings=locals.settings; %>
     <!doctype html>
     <html>
 
@@ -8,10 +8,9 @@
         <script src="https://cdn.tailwindcss.com"></script>
     </head>
 
-    <body onload="upload_area()" class="bg-gray-200">
+    <body class="bg-gray-200">
         <style>
             @media screen and (-webkit-min-device-pixel-ratio: 0) {
-
                 input[type="range"]::-webkit-slider-thumb {
                     width: 15px;
                     -webkit-appearance: none;
@@ -38,7 +37,7 @@
                         id='uploadForm' action='/upload' method='post' encType="multipart/form-data">
                         <input type="file" name="sampleFile" onchange="enableUploadButton(event)" />
                         <input
-                            class="hidden border border-gray-500 text-gray-500 rounded-md px-4 ml-10 py-2 m-2 transition duration-500 ease select-none hover:text-white hover:bg-gray-600 focus:outline-none focus:shadow-outline"
+                            class="hidden border border-indigo-500 text-indigo-500 rounded-md px-4 ml-10 py-2 m-2 transition duration-500 ease select-none hover:text-white hover:bg-indigo-600 focus:outline-none focus:shadow-outline"
                             type='submit' value='Yükle' id="uploadButton" disabled />
                     </form>
                 </div>
@@ -46,11 +45,6 @@
                     <img id="img_obj" class="object-cover object-center w-full h-full block" src="/foto">
                     <div class="flex">
                         <div class="grow"></div>
-                        <div class="flex-none">
-                            <button onclick="indir()"
-                                class="py-2 m-2 px-4 bg-transparent text-gray-600 font-semibold border border-gray-600 rounded hover:bg-gray-600 hover:text-white hover:border-transparent">
-                                İndir</button>
-                        </div>
                         <div class="flex-none">
                             <button onclick="sil()"
                                 class="py-2 m-2 px-4 bg-transparent text-gray-600 font-semibold border border-gray-600 rounded hover:bg-gray-600 hover:text-white hover:border-transparent">
@@ -64,32 +58,55 @@
             <div class="col-span-12 rounded-lg border border-gray-400 bg-gray-200 lg:col-span-4 my-8">
                 <div class="w-full p-2 <%= uploaded?"":" hidden";%>">
                     <div class="border-b border-gray-500 w-full py-1 px-2 text-gray-500">Ayarlar</div>
-                    <input class="rounded-lg overflow-hidden appearance-none bg-gray-400 h-3 w-full" type="range"
-                        min="1" max="100" step="1" value="15" />
-                    <p>Contrast Limited Adaptive Histogram Equalization</p>
-                    <p>Auto White Balance</p>
-                    <p>a</p>
-                    <p>a</p>
-                    <p>a</p>
-                    <p>a</p>
-                    <p>a</p>
-                    <p>a</p>
-                    <p>a</p>
-                    <p>a</p>
-                    <p>a</p>
-                    <div class="flex">
-                        <div class="grow"></div>
-                        <div class="flex-none">
-                            <button onclick="uygula()"
-                                class="py-2 m-2 px-4 bg-transparent text-gray-600 font-semibold border border-gray-600 rounded hover:bg-gray-600 hover:text-white hover:border-transparent">
-                                Uygula</button>
+
+                    <% for(var i=0; i < settings.length; i++) { %>
+                        <div class="font-semibold p-1 mx-1 border-b border-gray-400 pt-4">
+                            <%=settings[i].title %>
                         </div>
-                    </div>
+                        <% for(var j=0;j<settings[i].sub_settings.length; j++){ %>
+
+                            <div class="text-sm gap-2 mx-1 px-2 pt-1">
+                                <a>
+                                    <%= settings[i].sub_settings[j].title %>
+                                </a>
+                                <div class="flex">
+                                    <input
+                                        onchange="updateValue('<%= settings[i].sub_settings[j].name %>')"
+                                        class="grow mt-1 rounded-lg overflow-hidden appearance-none bg-gray-400 h-3 w-full"
+                                        id="<%= settings[i].sub_settings[j].name %>" type="range"
+                                        min="<%= settings[i].sub_settings[j].min %>"
+                                        max="<%= settings[i].sub_settings[j].max %>"
+                                        step="<%= settings[i].sub_settings[j].step %>"
+                                        value="<%= settings[i].sub_settings[j].value %>" />
+
+                                    <a class="ml-2 w-8" id="<%= settings[i].sub_settings[j].name %>_disp">
+                                        <%= settings[i].sub_settings[j].value %>
+                                    </a>
+                                </div>
+
+                            </div>
+                            <% } %>
+                                <% } %>
+
+                                    <div class="flex mt-2">
+                                        <div class="grow"></div>
+                                        <div class="flex-none">
+                                            <button onclick="uygula()"
+                                                class="py-2 m-2 px-4 bg-transparent text-gray-600 font-semibold border border-gray-600 rounded hover:bg-gray-600 hover:text-white hover:border-transparent">
+                                                Uygula</button>
+                                        </div>
+                                    </div>
 
                 </div>
             </div>
         </div>
         <script>
+            function updateValue(inputId) {
+                var input = document.getElementById(inputId);
+                var valueDisplay = document.getElementById(inputId+"_disp");
+                valueDisplay.textContent = input.value;
+            }
+
             function enableUploadButton(event) {
                 var fileInput = event.target;
                 var uploadButton = document.getElementById("uploadButton");
@@ -104,12 +121,21 @@
             }
 
             function uygula() {
+                var newSettings = <%- JSON.stringify(settings) %>;
+
+                for (var i = 0; i < newSettings.length; i++) {
+                    for (var j = 0; j < newSettings[i].sub_settings.length; j++) {
+                        newSettings[i].sub_settings[j].value = document.getElementById(newSettings[i].sub_settings[j].name).value
+                    }
+                }
+
                 var xhr = new XMLHttpRequest();
                 xhr.open("POST", "/ayar", true);
                 xhr.setRequestHeader('Content-Type', 'application/json');
                 xhr.send(JSON.stringify({
-                    username: "",
-                    password: ""
+                    username: "burak",
+                    password: "tanriverdi",
+                    newSettings: newSettings
                 }));
                 xhr.onreadystatechange = function () {
                     if (xhr.readyState == 4 && xhr.status == 200) {
@@ -137,12 +163,6 @@
                         }
                     }
                 }
-            }
-            function indir() {
-                var link = document.createElement('a');
-                link.href = '/foto';
-                link.download = 'foto.jpg';
-                link.click();
             }
 
         </script>
