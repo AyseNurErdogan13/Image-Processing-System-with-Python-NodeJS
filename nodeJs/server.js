@@ -9,7 +9,7 @@ app.use(fileUpload());
 app.set('view engine', 'ejs');
 app.use(express.json());
 
-var settings = [
+var settings = [ //varsayılan ayarlar 
     {
         "name": "clahe_image",
         "title": "CLAHE",
@@ -21,13 +21,13 @@ var settings = [
                 "min": 0,
                 "max": 40,
                 "step": 1,
-                "value": 2.0
+                "value": 2.0 // settings[0]["sub_settings"][0]["value"]
             },
             {
                 "name": "tileGridSize",
                 "title": "Tile Grid Size",
                 "type": "range",
-                "min": 0,
+                "min": 1,
                 "max": 40,
                 "step": 1,
                 "value": 16
@@ -96,7 +96,7 @@ function runPythonScript(scriptPath, args) {
     });
 }
 
-app.post('/upload/', async function (req, res) {
+app.post('/upload/', async function (req, res) {  //Fotoğraf yükleme
     let sampleFile, sampleFile2;
     let uploadPath, uploadPath2;
 
@@ -123,7 +123,7 @@ app.post('/upload/', async function (req, res) {
 
 });
 
-app.get("/foto", async function (req, res) {
+app.get("/foto", async function (req, res) { //Fotoğrafı gönderme
     fs.readdir('./photos', (err, files) => {
         if (err) {
             console.error('Klasör okunurken bir hata oluştu:', err);
@@ -143,12 +143,11 @@ app.get("/foto", async function (req, res) {
     });
 })
 
-app.post("/ayar", async function (req, res) {
-    //console.log(req.body.newSettings);
+app.post("/ayar", async function (req, res) { //Ayarları uygulama
     currentSettings = req.body.newSettings;
 
-    runPythonScript("app.py", JSON.stringify(currentSettings)).then((result) => {
-        console.log(result);
+    runPythonScript("app.py", JSON.stringify(currentSettings)).then((result) => { //Python scriptini çalıştırma
+        //console.log(result);
         res.send("ok");
     }).catch((err) => {
         console.log(err);
@@ -156,7 +155,7 @@ app.post("/ayar", async function (req, res) {
     })
 })
 
-app.post("/sil", async function (req, res) {
+app.post("/sil", async function (req, res) { //Fotoğrafı silme
     console.log("silme post");
 
     fs.readdir("photos", (err, files) => {
@@ -183,14 +182,14 @@ app.post("/sil", async function (req, res) {
 
 })
 
-app.get("/", async function (req, res) {
+app.get("/", async function (req, res) { //Ana sayfa
     fs.readdir('./photos', (err, files) => {
         if (err) {
             console.error('Klasör okunurken bir hata oluştu:', err);
             return;
         }
 
-        if (files.length > 0) {
+        if (files.length > 0) { //photos klasörü boş değilse
             res.render("index", { uploaded: true, settings: currentSettings });
         } else {
             res.render("index", { uploaded: false, settings: settings });

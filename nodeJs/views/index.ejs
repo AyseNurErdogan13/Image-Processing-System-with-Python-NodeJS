@@ -133,8 +133,6 @@
                 xhr.open("POST", "/ayar", true);
                 xhr.setRequestHeader('Content-Type', 'application/json');
                 xhr.send(JSON.stringify({
-                    username: "Aysenur",
-                    password: "Erdogan",
                     newSettings: newSettings
                 }));
                 xhr.onreadystatechange = function () {
@@ -150,8 +148,6 @@
                 xhr.open("POST", "/sil", true);
                 xhr.setRequestHeader('Content-Type', 'application/json');
                 xhr.send(JSON.stringify({
-                    username: "",
-                    password: ""
                 }));
                 xhr.onreadystatechange = function () {
                     if (xhr.readyState == 4 && xhr.status == 200) {

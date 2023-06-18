@@ -1,5 +1,5 @@
 import os
-import numpy as np # linear algebra
+import numpy as np  # linear algebra
 import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
 import cv2
 import sys
@@ -44,18 +44,12 @@ def awb(img, settings):
 
     return img_wb3
 
-json_str = ''.join(sys.argv[1:])
-
-json_settings = json.loads(json_str)
-
-print(json_settings[1]["sub_settings"])
-
-
-#print('Second param:'+sys.argv[1]+'#')
+json_str = ''.join(sys.argv[1:])        # json string olarak alıyoruz
+json_settings = json.loads(json_str)    # json stringi json objesine çeviriyoruz
 
 img = cv2.imread("./photos/foto.jpeg", cv2.IMREAD_COLOR) ## diğer dosya türleri için
 
 img = clahe_image(img, json_settings)
 img = awb(img, json_settings)
 
-cv2.imwrite("./photos/foto_2.jpeg", img)
+cv2.imwrite("./photos/foto_2.jpeg", img) # dosyayı kaydediyoruz
